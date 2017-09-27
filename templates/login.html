@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Login</h1>
+    <form class="form-group" name="register_form" method="post">
+        {{ form.email.label }}
+        {% if form.email.errors %}
+            {% for error in form.email.errors %}
+                <li class="alert-danger">{{ error|e }}</li>
+            {% endfor %}
+        {% endif %}
+        <p>{{ form.email }}</p>
+
+        {{ form.password.label }}
+        {% if form.password.errors %}
+            {% for error in form.password.errors %}
+                <li class="alert-danger">{{ error|e }}</li>
+            {% endfor %}
+        {% endif %}
+        <p>{{ form.password }}</p>
+
+        <p>{{ form.submit }}</p>
+    </form>
+{% endblock %}
