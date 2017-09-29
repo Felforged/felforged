@@ -1,4 +1,6 @@
-from wtforms import Form, StringField, PasswordField, validators, SubmitField
+from wtforms import Form, StringField, PasswordField, validators, SubmitField, HiddenField
+from urllib.parse import urlparse, urljoin
+from flask import request, url_for, redirect
 
 
 class RegistrationForm(Form):
@@ -18,3 +20,16 @@ class RegistrationForm(Form):
                                               validators.EqualTo("password",
                                                                  message="Passwords do not match.")])
     submit = SubmitField(label="Register")
+
+
+class LoginForm(Form):
+    email = StringField(label="Email",
+                        validators=[validators.InputRequired(message="Email is required."),
+                                    validators.Email(message="Must be an email address.")])
+    password = PasswordField(label="Password",
+                             validators=[validators.InputRequired()])
+    submit = SubmitField(label="Login")
+
+
+class NewArticleForm(Form):
+    title = StringField(label="Title")
