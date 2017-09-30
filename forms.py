@@ -1,4 +1,5 @@
-from wtforms import Form, StringField, PasswordField, validators, SubmitField, HiddenField
+from wtforms import Form, StringField, PasswordField, validators, SubmitField, HiddenField, \
+    BooleanField, TextAreaField
 from urllib.parse import urlparse, urljoin
 from flask import request, url_for, redirect
 
@@ -32,4 +33,8 @@ class LoginForm(Form):
 
 
 class NewArticleForm(Form):
-    title = StringField(label="Title")
+    title = StringField("Title")
+    text = TextAreaField("Text")
+    tags = StringField("Tags")
+    draft = BooleanField("Draft?", default=False)
+    submit = SubmitField("Submit")

@@ -4,35 +4,18 @@ from passlib.hash import pbkdf2_sha256
 # internal imports
 from app import app, login_manager
 import forms
-from models import Users, add_user_to_db
+import config
+from models import User, add_user_to_db, Article, add_article_to_db
 
 
 def get_nav():
     nav = []
     if current_user.is_authenticated:
-        n = [
-            {
-                "url": "/profile",
-                "name": "Profile"
-            },
-            {
-                "url": "/logout",
-                "name": "Logout"
-            }
-        ]
+        n = config.BaseConfig.NAVIGATION_LOGGED_IN
         for n in n:
             nav.append(n)
     else:
-        n = [
-            {
-                "url": "/register",
-                "name": "Register"
-            },
-            {
-                "url": "/login",
-                "name": "Login"
-            }
-        ]
+        n = config.BaseConfig.NAVIGATION_LOGGED_OUT
         for n in n:
             nav.append(n)
     return nav
@@ -40,15 +23,22 @@ def get_nav():
 
 @login_manager.user_loader
 def get_user(user):
-    return Users.query.get(user)
+    return User.query.get(user)
 
 
 @app.route("/")
 @app.route("/index")
 def index():
     nav = get_nav()
-    return render_template("latest_article.html",
-                           navigation=nav)
+    try:
+        art = Article.query.order_by(Article.published).first_or_404()
+        if art is not None:
+            return render_template("latest_article.html",
+                                   navigation=nav,
+                                   article=art)
+    except:
+        return render_template("latest_article.html",
+                               navigation=nav)
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -57,9 +47,9 @@ def register():
     form = forms.RegistrationForm(request.form)
     if request.method == "POST" and form.validate():
         try:
-            user = Users(email=form.email.data,
-                         username=form.username.data,
-                         password=pbkdf2_sha256.hash(form.password.data))
+            user = User(email=form.email.data,
+                        username=form.username.data,
+                        password=pbkdf2_sha256.hash(form.password.data))
             add_user_to_db(user)
             user.authenticated = True
             login_user(user, remember=True)
@@ -78,13 +68,18 @@ def login():
     nav = get_nav()
     form = forms.LoginForm(request.form)
     if request.method == "POST" and form.validate():
-        user = Users.query.filter_by(email=form.email.data).first_or_404()
-        if user is not None and pbkdf2_sha256.verify(form.password.data, user.password):
-            user.authenticated = True
-            login_user(user, remember=True)
-            return redirect("/")
-        else:
-            return redirect("/login")
+        try:
+            user = User.query.filter_by(email=form.email.data).first_or_404()
+            if user is not None and pbkdf2_sha256.verify(form.password.data, user.password):
+                user.authenticated = True
+                login_user(user, remember=True)
+                return redirect("/")
+            else:
+                return redirect("/login")
+        except:
+            return render_template('login.html',
+                                   navigation=nav,
+                                   form=form)
     else:
         return render_template('login.html',
                                navigation=nav,
@@ -102,6 +97,23 @@ def logout():
 @login_required
 def create():
     nav = get_nav()
-    form = forms.NewArticleForm(request.form)
-    if request.method == "POST" and form.validate():
-        user
+    user = User.query.filter_by(id=current_user.id).first_or_404()
+    if user.role == "admin":
+        print(user.role)
+        form = forms.NewArticleForm(request.form)
+        if request.method == "POST" and form.validate():
+            art = Article(title=form.title.data,
+                          content=form.text.data,
+                          draft=form.draft.data,
+                          tags=form.tags.data,
+                          author=current_user.username)
+            print(art)
+            add_article_to_db(art)
+            print("adding to db?")
+            return redirect("/")
+        else:
+            return render_template("editor.html",
+                                   navigation=nav,
+                                   form=form)
+    else:
+        return redirect("/")

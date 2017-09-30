@@ -3,10 +3,11 @@ from datetime import datetime
 from app import database as db
 
 
-class Users(db.Model):
+class User(db.Model):
     """
     This is the user object that gets inserted into our users.db
     """
+    __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(255), unique=True, nullable=False)
     username = db.Column(db.String(255), unique=True, nullable=False)
@@ -14,7 +15,7 @@ class Users(db.Model):
     banned = db.Column(db.Boolean, default=False)
     joined = db.Column(db.DateTime, default=datetime.now())
     password = db.Column(db.String(255), nullable=False)
-    articles = db.relationship("Articles", backref="author", lazy=True)
+    articles = db.relationship("Article", backref="user", lazy="dynamic")
 
     def is_authenticated(self):
         return self.authenticated
@@ -37,11 +38,20 @@ def add_user_to_db(user):
     db.session.commit()
 
 
-class Articles(db.Model):
+class Article(db.Model):
+    __tablename__ = "articles"
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(255), nullable=False)
     author = db.Column(db.String(255), db.ForeignKey("users.username"), nullable=False)
-    filepath = db.Column(db.String(255), default="./articles", nullable=False)
+    content = db.Column(db.BLOB)
     draft = db.Column(db.Boolean, default=False)
-    published = db.Column(db.DateTime, default=datetime.now())
+    published = db.Column(db.DateTime)
     tags = db.Column(db.String(255))
+
+    def __repr__(self):
+        return "<Title %r>" % self.title
+
+
+def add_article_to_db(article):
+    db.session.add(article)
+    db.session.commit()

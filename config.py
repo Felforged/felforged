@@ -12,6 +12,10 @@ class BaseConfig:
     ]
     NAVIGATION_LOGGED_IN = [
         {
+            "url": "/create",
+            "name": "Create"
+        },
+        {
             "url": "/profile",
             "name": "Profile"
         },
@@ -26,6 +30,7 @@ class BaseConfig:
     # Flask-SQLAlchemy Config
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_DATABASE_URI = "sqlite:///./storage/felforged.db"
+
 
     # Flask-Security Config
     SECURITY_PASSWORD_HASH = "pbkdf2_sha512"
